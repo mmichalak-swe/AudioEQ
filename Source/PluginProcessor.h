@@ -10,11 +10,19 @@
 
 #include <JuceHeader.h>
 
+enum Slope
+{
+    Slope_12,
+    Slope_24,
+    Slope_36,
+    Slope_48
+};
+
 struct ChainSettings
 {
     float peakFreq {0}, peakGainInDecibels {0}, peakQuality {1.f};
     float lowCutFreq {0}, highCutFreq {0};
-    int lowCutSlope {0}, highCutSlope {0};
+    int lowCutSlope {Slope::Slope_12}, highCutSlope {Slope::Slope_12};
 };
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
@@ -62,8 +70,7 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    static juce::AudioProcessorValueTreeState::ParameterLayout
-    createParameterLayout();
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
 
 private:
