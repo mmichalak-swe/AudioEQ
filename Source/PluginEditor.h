@@ -20,12 +20,31 @@ struct CustomRotarySlider : juce::Slider
     }
 };
 
+struct ResponseCurveComponent: juce::Component,
+juce::AudioProcessorParameter::Listener,
+juce::Timer
+{
+    ResponseCurveComponent(AudioEQAudioProcessor&);
+    ~ResponseCurveComponent();
+    
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override {};
+
+    void timerCallback() override;
+    
+    void paint(juce::Graphics& g) override;
+private:
+    AudioEQAudioProcessor& audioProcessor;
+    juce::Atomic<bool> parametersChanged{false};
+    
+    MonoChain monoChain;
+};
+
 //==============================================================================
 /**
 */
-class AudioEQAudioProcessorEditor  : public juce::AudioProcessorEditor,
-juce::AudioProcessorParameter::Listener,
-juce::Timer
+class AudioEQAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
     AudioEQAudioProcessorEditor (AudioEQAudioProcessor&);
@@ -34,19 +53,12 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    
-    // copied from JUCE Modules/juce_audio_processors/processors/juceAudioProcessorParameter.h
-    void parameterValueChanged(int parameterIndex, float newValue) override;
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override {};
-    
-    void timerCallback() override;
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     AudioEQAudioProcessor& audioProcessor;
-    
-    juce::Atomic<bool> parametersChanged{false};
-    
+
     CustomRotarySlider peakFreqSlider,
     peakGainSlider,
     peakQualitySlider,
@@ -54,6 +66,8 @@ private:
     highCutFreqSlider,
     lowCutSlopeSlider,
     highCutSlopeSlider;
+    
+    ResponseCurveComponent responseCurveComponent;
     
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
@@ -67,8 +81,6 @@ private:
                highCutSlopeSliderAttachment;
     
     std::vector<juce::Component*> getComps();
-    
-    MonoChain monoChain;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioEQAudioProcessorEditor)
 };
